@@ -1,23 +1,27 @@
-# Continuous Clearing Auction
+# Astrea Genesis Auction
 
-This repository contains the smart contracts for Continuous Clearing Auctions (CCAs). It is intended to be used in combination with the [Uniswap Liquidity Launcher](https://github.com/Uniswap/liquidity-launcher) contracts suite.
+This repository is Astrea's guarded fork of Uniswap's Continuous Clearing Auction (CCA) contracts for the ASTREA Genesis Auction on Ethereum mainnet.
 
-## Table of Contents
+The fork keeps the audited CCA auction accounting, bidding, checkpointing, exits, claims, sweeps, lenses, and optional validation-hook plumbing intact. Astrea-specific behavior is enforced through a separate production factory and deployment documentation.
 
-- [Installation](#installation)
-- [Deployments](#deployments)
-- [Audits](#audits)
-- [Docs](#docs)
-- [Repository Structure](#repository-structure)
-- [License](#license)
+## Genesis Auction v1
 
-## Overview
+The v1 production path is [`AstreaGenesisAuctionFactory`](./src/AstreaGenesisAuctionFactory.sol). It deploys unmodified [`ContinuousClearingAuction`](./src/ContinuousClearingAuction.sol) instances with these guardrails:
 
-CCA is a novel auction mechanism that generalizes the uniform-price auction into continuous time. It provides fair price discovery for bootstrapping initial liquidity while eliminating timing games and encouraging early participation (see [whitepaper](./docs/assets/whitepaper.pdf)).
+- Ethereum mainnet only.
+- ETH bids only.
+- 7-day auction duration, represented as 50,400 Ethereum blocks.
+- 10% token allocation, checked against the token's `totalSupply()`.
+- `requiredCurrencyRaised = 0`, so there is no minimum raise failure condition.
+- No protocol fee controller.
+- No automatic LP migration.
+- Optional pre-bid validation hook support.
 
-The contracts can be used as a standalone auction or a part of a larger token distribution system. All contracts are MIT licensed.
+The ERC-1155 validation hooks under [`src/periphery/validationHooks`](./src/periphery/validationHooks) are optional gating periphery. They check existing ERC-1155 ownership before a bid is accepted; they do not mint participation receipts.
 
-## Installation
+The Genesis Participation NFT is intentionally deferred to a later dedicated implementation.
+
+## Development
 
 ```bash
 forge install
@@ -25,85 +29,34 @@ forge build
 forge test
 ```
 
-## Deployments
+The repository uses Foundry with optimizer settings in [`foundry.toml`](./foundry.toml). Tests include the upstream CCA unit, fuzz, and invariant suite plus Astrea-specific factory and settlement guardrail coverage.
 
-CCA instances are deployed via the [ContinuousClearingAuctionFactory](./src/ContinuousClearingAuctionFactory.sol). Each factory is bound to a single immutable [IProtocolFeeController](./lib/liquidity-launcher/src/interfaces/IProtocolFeeController.sol) which all auctions it creates use to compute and route protocol fees. Deploy a new factory to use a different fee controller.
+## Deployment
 
-Addresses are cannonical across select EVM chains. If it is not already deployed, it can be deployed by anyone following the [Deployment Guide](./docs/DeploymentGuide.md).
+Use the Astrea factory deployment path for production Genesis Auction deployments:
 
-### ContinuousClearingAuctionFactory
+- [Deployment guide](./docs/DeploymentGuide.md)
+- [Astrea Genesis Auction plan](./docs/astrea-PLAN-v1.md)
+- [Astrea Genesis Auction product brief](./docs/Astrea%20ICO%20-%20Genesis%20Auction%20%28CCA%20Fork%29.md)
 
-| Version  | Address                                    | Commit Hash                              | Version          |
-| -------- | ------------------------------------------ | ---------------------------------------- | ---------------- |
-| v2.0.0   | 0x00cCa200BF124dBfA848937c553864f4B4CE0632 | aee9bca51c92c24eb24a00d75ad98e678bac61d3 | v2.0.0           |
-| v1.1.0   | 0xCCccCcCAE7503Cac057829BF2811De42E16e0bD5 | 8508f332c3daf330b189290b335fd9da4e95f3f0 | v1.1.0           |
-| v1.0.0\* | 0x0000ccaDF55C911a2FbC0BB9d2942Aa77c6FAa1D | 154fd189022858707837112943c09346869c964f | v1.0.0-candidate |
+The generic [`ContinuousClearingAuctionFactory`](./src/ContinuousClearingAuctionFactory.sol) remains in the repository for upstream compatibility and tests, but it is not the Astrea Genesis Auction production path.
 
-> \*v2.0.0 is the latest version of CCA and is the recommended version for production use. For more details, see the [Changelog](./CHANGELOG.md).
-
-### CCALens
-
-[CCALens](./src/lens/CCALens.sol) is a stateless periphery contract for offchain reads of auction state and initialized tick data. It is deployed separately from the factory and is safe to share across all auctions on a chain.
-
-| Version | Address                                    | Commit Hash                              | Tag          |
-| -------- | ------------------------------------------ | ---------------------------------------- | ---------------- |
-| v2.0.0  | 0xc3C65F5453A3674aDb693cbdA3C842545cD30f53 | aee9bca51c92c24eb24a00d75ad98e678bac61d3 | v2.0.0  |
-
-## Audits
-
-The code has been audited by Spearbit, OpenZeppelin, and ABDK Consulting. The most recent audits for v2.0.0 are linked below. For a full list of audits, see [Audits](./docs/audits/README.md).
-
-| Version | Date       | Report                                                                                                       |
-| ------- | ---------- | ------------------------------------------------------------------------------------------------------------ |
-| v2.0.0  | 06/16/2026 | [OpenZeppelin](./docs/audits/OpenZeppelin_v2.0.0.pdf)                                                        |
-| v2.0.0  | 06/16/2026 | [Spearbit](./docs/audits/Spearbit_v2.0.0.pdf)                                                                |
-
-### Bug bounty
-
-The files under `src/` are covered under the Uniswap Labs bug bounty program [here](https://cantina.xyz/code/f9df94db-c7b1-434b-bb06-d1360abdd1be/overview), subject to scope and other limitations.
-
-### Security contact
-
-security@uniswap.org
-
-### Whitepaper
-
-The [whitepaper](./docs/assets/whitepaper.pdf) for the Continuous Clearing Auction.
-
-## Docs
+## Documentation
 
 - [Technical documentation](./docs/TechnicalDocumentation.md)
-- [Changelog](./CHANGELOG.md)
 - [Deployment guide](./docs/DeploymentGuide.md)
+- [Changelog](./CHANGELOG.md)
 
-## Repository Structure
+## Audit Provenance
 
-All contracts are located in the `src/` directory. `test/btt` contains BTT unit tests for the Auction contracts and associated libraries, and the top level `test/` folder contains additional tests. The suite has unit, fuzz, and invariant tests.
+The underlying CCA codebase has upstream audit reports from Spearbit, OpenZeppelin, and ABDK Consulting in [`docs/audits`](./docs/audits). These reports are provenance for the inherited Uniswap CCA code. Astrea-specific factory, deployment, and documentation changes need separate review before mainnet use.
 
-```markdown
-src/
-----interfaces/
-| IContinuousClearingAuction.sol
-| IContinuousClearingAuctionFactory.sol
-| ...
-----lens/
-| CCALens.sol
-| ...
-----libraries/
-| ...
-----periphery/
-| validationHooks/
-----ContinuousClearingAuction.sol
-----ContinuousClearingAuctionFactory.sol
-----AuctionStorage.sol
-test/
-----btt/
-| auction/
-| ...
-----Auction.t.sol
-----Auction.invariant.t.sol
-```
+## Security
+
+Security contact: `security@astrea.xyz`
+
+Do not deploy the Genesis Auction to mainnet without an Astrea-specific review of the final branch, deployment parameters, token address, token allocation, recipients, validation hook configuration, and operational runbook.
 
 ## License
 
-The contracts are covered under the MIT License (`MIT`), see [MIT_LICENSE](https://github.com/Uniswap/continuous-clearing-auction/blob/main/LICENSE).
+The contracts are covered under the MIT License. See [`LICENSE`](./LICENSE).

@@ -1,10 +1,12 @@
-# Technical Documentation
-CCA documentation is also available on the official [Uniswap docs site](https://docs.uniswap.org/contracts/liquidity-launchpad/CCA).
+# Astrea Genesis Auction Technical Documentation
+
+This repository is an Astrea-guarded fork of Uniswap's Continuous Clearing Auction (CCA). The inherited CCA mechanics remain documented below, while the production Genesis Auction path is the Astrea-specific factory described in this document.
 
 ## Table of Contents
 - [Quickstart](#quickstart)
+- [Astrea Genesis Auction v1](#astrea-genesis-auction-v1)
 - [Protocol Overview](#protocol-overview)
-- [Continuous Clearing Auction Factory](#continuous-clearing-auction-factory)
+- [Factories](#factories)
 - [Auction Configuration](#auction-configuration)
 - [Protocol Fees](#protocol-fees)
 - [Validation Hooks](#validation-hooks)
@@ -31,7 +33,40 @@ CCA documentation is also available on the official [Uniswap docs site](https://
     - [Limitations with low-decimal tokens or Fee On Transfer tokens](#limitations-with-low-decimal-tokens-or-fee-on-transfer-tokens)
 
 ## Quickstart
-A comprehensive quickstart guide for deploying and interacting with a local CCA deployment is hosted on the official [Uniswap docs site](https://docs.uniswap.org/contracts/liquidity-launchpad/quickstart/setup).
+Use Foundry to build and test the fork locally:
+
+```bash
+forge build
+forge test
+```
+
+See the [Deployment Guide](./DeploymentGuide.md) for the guarded Ethereum mainnet deployment flow.
+
+## Astrea Genesis Auction v1
+
+The production Astrea path is [`AstreaGenesisAuctionFactory`](../src/AstreaGenesisAuctionFactory.sol). It deploys the same [`ContinuousClearingAuction`](../src/ContinuousClearingAuction.sol) implementation used by the rest of the repository, but constructs `AuctionParameters` internally and rejects invalid Genesis configurations.
+
+Astrea v1 guardrails:
+
+- Ethereum mainnet only.
+- ETH-only bidding with `currency = address(0)`.
+- 7-day duration, encoded as 50,400 Ethereum blocks.
+- 10% token allocation, checked as `tokenAllocation * 10 == token.totalSupply()`.
+- Zero graduation threshold with `requiredCurrencyRaised = 0`.
+- No protocol fee controller.
+- No automatic LP migration.
+- Optional validation hook passthrough for pre-bid gating.
+
+The 7-day schedule is returned by `genesisAuctionStepsData()` as two packed CCA steps:
+
+| MPS per block | Blocks |
+| ------------- | ------ |
+| 199           | 20,800 |
+| 198           | 29,600 |
+
+The schedule releases exactly `10,000,000` MPS over `50,400` blocks, which is 100% of the auction allocation.
+
+The ERC-1155 hooks under [`src/periphery/validationHooks`](../src/periphery/validationHooks) are optional eligibility checks. They do not mint participation receipt NFTs. Receipt NFT work is deferred to a later contract that can read bid ownership and settlement state without changing core auction math.
 
 ## Protocol Overview
 
@@ -42,11 +77,49 @@ A Continuous Clearing Auction (CCA) generalizes the uniform-price auction into c
 - **Uniform clearing price.** At every checkpoint the auction recomputes the lowest clearing price at which all remaining supply over the remaining schedule can be sold to demand at or above that price. Bids strictly above the clearing price fill in full pro-rata over the blocks they were live; bids at the clearing price fill partially in proportion to the demand sitting at that tick.
 - **Supply rollover.** Demand above the clearing price during one block carries over into the remaining issuance schedule. When a tick is consumed, the new clearing price reflects the remaining supply divided across the remaining MPS, so latent demand keeps lifting the price even after the originating blocks have passed. Integrators should not assume that a block's issuance is settled at the clearing price of that block alone.
 - **Checkpoints.** State is updated lazily. At most one checkpoint is written per block, at the top of the first block containing a new bid. Checkpoints store the clearing price, cumulative MPS, an inverse-price accumulator (`cumulativeMpsPerPrice`), and the cumulative currency raised at the current clearing price (`currencyRaisedAtClearingPriceQ96X7`). Bid exits use these accumulators to derive fills in O(1) without iterating blocks.
-- **Graduation.** An auction graduates if `currencyRaised >= requiredCurrencyRaised`. Until graduation, bids cannot be exited and currency cannot be swept. If the auction never graduates, bidders can refund their full bid amount via `exitBid` and all tokens are returned to the tokens recipient.
-- **LBP handoff.** After graduation `lbpInitializationParams()` returns the final clearing price, the tokens cleared, and the currency raised net of protocol fees. The values are consumed by a downstream `ILBPInitializer` strategy (typically initializing a Uniswap v4 pool) defined in the [Liquidity Launcher](https://github.com/Uniswap/liquidity-launcher).
-- **Protocol fees.** Each auction is bound to an immutable `IProtocolFeeController` at construction. Fees are computed at sweep / handoff time, transferred to the controller's recipient, and deducted from the currency forwarded to `fundsRecipient`. See [Protocol Fees](#protocol-fees).
+- **Graduation.** A generic CCA auction graduates if `currencyRaised >= requiredCurrencyRaised`. Astrea Genesis v1 fixes `requiredCurrencyRaised = 0`, so the auction has no minimum raise failure condition. A no-bid auction finalizes with zero raised ETH and all ASTREA returned to `tokensRecipient`.
+- **LBP handoff.** The inherited CCA contract still exposes `lbpInitializationParams()` for upstream compatibility. Astrea Genesis v1 does not use automatic LP migration or Liquidity Launcher handoff.
+- **Protocol fees.** Generic CCA deployments may use an immutable `IProtocolFeeController`. Astrea Genesis v1 passes `address(0)` as the controller, so `sweepCurrency()` forwards gross raised ETH to `fundsRecipient`.
 
-## Continuous Clearing Auction Factory
+## Factories
+
+### AstreaGenesisAuctionFactory
+
+`AstreaGenesisAuctionFactory` is the production deployment path for the ASTREA Genesis Auction.
+
+```solidity
+function create(
+    address token,
+    uint256 tokenAllocation,
+    bytes calldata configData,
+    bytes32 salt
+) external returns (IDistributor distributor);
+
+function getAddress(
+    address token,
+    uint256 tokenAllocation,
+    bytes calldata configData,
+    bytes32 salt,
+    address sender
+) external view returns (IDistributor distributor);
+```
+
+`configData` is `abi.encode(AstreaGenesisAuctionConfig)`.
+
+```solidity
+struct AstreaGenesisAuctionConfig {
+    address tokensRecipient;
+    address fundsRecipient;
+    uint64 startBlock;
+    uint256 floorPrice;
+    uint256 tickSpacing;
+    address validationHook;
+}
+```
+
+The factory validates mainnet chain id, token allocation, recipients, start block, floor price, and tick spacing before deployment. It then constructs the CCA `AuctionParameters` internally.
+
+### ContinuousClearingAuctionFactory
 
 The `ContinuousClearingAuctionFactory` is the canonical deployment path for new CCA instances. It deploys each auction with CREATE2 using the caller and provided salt, and it passes its immutable protocol fee controller address into every auction it creates.
 
@@ -66,24 +139,24 @@ Because the controller is part of the auction init code, factories deployed with
 
 ## Auction Configuration
 
-The auction and its supply curve are configured through the factory, which deploys individual auction contracts with configurable parameters.
+Generic CCA auctions are configured through `AuctionParameters`. The Astrea Genesis factory constructs this struct internally from `AstreaGenesisAuctionConfig`.
 
 ```solidity
 interface IContinuousClearingAuctionFactory {
-    function initializeDistribution(
+    function create(
         address token,
         uint256 amount,
         bytes calldata configData,
         bytes32 salt
-    ) external returns (address);
+    ) external returns (IDistributor distributor);
 
-    function getAuctionAddress(
+    function getAddress(
         address token,
         uint256 amount,
         bytes calldata configData,
         bytes32 salt,
         address sender
-    ) external view returns (address);
+    ) external view returns (IDistributor distributor);
 }
 
 /// @notice Parameters for the auction
