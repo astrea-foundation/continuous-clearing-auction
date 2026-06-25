@@ -52,7 +52,9 @@ forge script script/deploy/DeployAstreaGenesisAuctionFactory.s.sol:DeployAstreaG
   --rpc-url $MAINNET_RPC_URL \
   --account $DEPLOYER_ACCOUNT \
   --sender $DEPLOYER_ADDRESS \
-  --broadcast
+  --broadcast \
+  --verify --verifier etherscan \
+  --etherscan-api-key $ETHERSCAN_API_KEY
 ```
 
 The script reverts unless `block.chainid == 1`.
