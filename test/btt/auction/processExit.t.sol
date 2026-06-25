@@ -3,8 +3,8 @@ pragma solidity 0.8.26;
 
 import {AuctionFuzzConstructorParams, BttBase} from '../BttBase.sol';
 import {MockContinuousClearingAuction} from '../mocks/MockContinuousClearingAuction.sol';
-import {ERC20Mock} from 'openzeppelin-contracts/contracts/mocks/token/ERC20Mock.sol';
 import {IContinuousClearingAuction} from 'src/interfaces/IContinuousClearingAuction.sol';
+import {ERC20Mock} from 'test/utils/ERC20Mock.sol';
 
 contract ProcessExitTest is BttBase {
     function test_WhenRefundEqZero(AuctionFuzzConstructorParams memory _params, uint256 _tokensFilled) public {

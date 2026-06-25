@@ -3,7 +3,6 @@ pragma solidity 0.8.26;
 
 import {AuctionFuzzConstructorParams, BttBase} from '../BttBase.sol';
 import {MockContinuousClearingAuction} from '../mocks/MockContinuousClearingAuction.sol';
-import {ERC20Mock} from 'openzeppelin-contracts/contracts/mocks/token/ERC20Mock.sol';
 import {FixedPointMathLib} from 'solady/utils/FixedPointMathLib.sol';
 import {Bid} from 'src/BidStorage.sol';
 import {Checkpoint} from 'src/CheckpointStorage.sol';
@@ -13,6 +12,7 @@ import {ConstantsLib} from 'src/libraries/ConstantsLib.sol';
 import {FixedPoint96} from 'src/libraries/FixedPoint96.sol';
 import {MaxBidPriceLib} from 'src/libraries/MaxBidPriceLib.sol';
 import {ValueX7} from 'src/libraries/ValueX7Lib.sol';
+import {ERC20Mock} from 'test/utils/ERC20Mock.sol';
 
 contract CheckpointTest is BttBase {
     function _totalSupplyQ96X7(MockContinuousClearingAuction _auction) internal view returns (ValueX7) {

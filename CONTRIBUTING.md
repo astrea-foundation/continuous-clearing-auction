@@ -25,7 +25,7 @@
 Follow these steps to set up your local environment for development:
 
 - [Install foundry](https://book.getfoundry.sh/getting-started/installation)
-- Install dependencies: `forge install`
+- Install dependencies: `forge soldeer install`
 - [Install pre-commit](https://pre-commit.com/#installation)
 - Install pre commit hooks: `pre-commit install`
 

@@ -3,10 +3,10 @@ pragma solidity 0.8.26;
 
 import {AuctionFuzzConstructorParams, BttBase} from 'btt/BttBase.sol';
 import {MockContinuousClearingAuction} from 'btt/mocks/MockContinuousClearingAuction.sol';
-import {ERC20Mock} from 'openzeppelin-contracts/contracts/mocks/token/ERC20Mock.sol';
 import {IContinuousClearingAuction} from 'src/interfaces/IContinuousClearingAuction.sol';
 import {IStepStorage} from 'src/interfaces/IStepStorage.sol';
 import {FixedPoint96} from 'src/libraries/FixedPoint96.sol';
+import {ERC20Mock} from 'test/utils/ERC20Mock.sol';
 
 contract ExitBidTest is BttBase {
     function test_WhenBlockLTEndBlock(AuctionFuzzConstructorParams memory _params, uint64 _blockNumber) public {

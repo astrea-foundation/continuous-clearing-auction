@@ -5,9 +5,9 @@ import {AuctionFuzzConstructorParams, BttBase} from 'btt/BttBase.sol';
 import {MockContinuousClearingAuction} from 'btt/mocks/MockContinuousClearingAuction.sol';
 import {MockProtocolFeeController} from 'btt/mocks/MockProtocolFeeController.sol';
 import {LBPInitializationParams} from 'liquidity-launcher/src/interfaces/ILBPInitializer.sol';
-import {ERC20Mock} from 'openzeppelin-contracts/contracts/mocks/token/ERC20Mock.sol';
 import {IAuctionStorage} from 'src/interfaces/IAuctionStorage.sol';
 import {IContinuousClearingAuction} from 'src/interfaces/IContinuousClearingAuction.sol';
+import {ERC20Mock} from 'test/utils/ERC20Mock.sol';
 
 contract LBPInitializationParamsTest is BttBase {
     function test_WhenAuctionIsNotFinalized(AuctionFuzzConstructorParams memory _params, uint64 _blockNumber) external {

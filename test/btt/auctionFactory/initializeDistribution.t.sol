@@ -5,10 +5,10 @@ import {AuctionFuzzConstructorParams, BttBase} from '../BttBase.sol';
 
 import {MockProtocolFeeController} from '../mocks/MockProtocolFeeController.sol';
 import {IDistributor} from 'liquidity-launcher/src/interfaces/IDistributor.sol';
-import {ERC20Mock} from 'openzeppelin-contracts/contracts/mocks/token/ERC20Mock.sol';
 import {ContinuousClearingAuction} from 'src/ContinuousClearingAuction.sol';
 import {ContinuousClearingAuctionFactory} from 'src/ContinuousClearingAuctionFactory.sol';
 import {IContinuousClearingAuctionFactory} from 'src/interfaces/IContinuousClearingAuctionFactory.sol';
+import {ERC20Mock} from 'test/utils/ERC20Mock.sol';
 import {ActionConstants} from 'v4-periphery/src/libraries/ActionConstants.sol';
 
 contract InitializeDistributionTest is BttBase {

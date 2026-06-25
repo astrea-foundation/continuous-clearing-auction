@@ -3,13 +3,13 @@ pragma solidity ^0.8.0;
 
 import {IERC165} from '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import {Test} from 'forge-std/Test.sol';
-import {MockERC1155} from 'lib/solady/test/utils/mocks/MockERC1155.sol';
 import {IValidationHook} from 'src/interfaces/IValidationHook.sol';
 import {
     BaseERC1155ValidationHook,
     IBaseERC1155ValidationHook
 } from 'src/periphery/validationHooks/BaseERC1155ValidationHook.sol';
 import {IValidationHookIntrospection} from 'src/periphery/validationHooks/ValidationHookIntrospection.sol';
+import {MockERC1155} from 'test/utils/MockERC1155.sol';
 
 contract BaseERC1155ValidationHookTest is Test {
     IValidationHookIntrospection hook;

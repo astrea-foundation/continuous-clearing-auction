@@ -1,7 +1,7 @@
 [profile.default]
 src = "src"
 out = "out"
-libs = ["lib"]
+libs = ["dependencies"]
 optimizer = true
 optimizer_runs = 11111
 bytecode_hash = "none"
@@ -16,17 +16,19 @@ fs_permissions = [
 extra_output = ["storageLayout"]
 
 remappings = [
-  "forge-std=lib/forge-std/src",
-  "@openzeppelin/contracts=lib/openzeppelin-contracts/contracts",
-  "@openzeppelin/contracts-upgradeable=lib/openzeppelin-contracts-upgradeable/contracts",
-  "solady=lib/solady/src",
-  "permit2=lib/permit2",
-  "v4-periphery=lib/v4-periphery",
-  "liquidity-launcher=lib/liquidity-launcher",
-  "blocknumberish=lib/blocknumberish",
-  "continuous-clearing-auction=src/",
-  "test=test/",
-  "btt=test/btt/",
+    "forge-std=dependencies/forge-std-1.16.1/src",
+    "@openzeppelin/contracts=dependencies/@openzeppelin-contracts-5.5.0",
+    "solady=dependencies/solady-0.1.26/src",
+    "permit2=dependencies/uniswap-permit2-0x000000000022D473030F116dDEE9F6B43aC78BA3",
+    "v4-periphery=dependencies/uniswap-v4-periphery-60cd93803ac2b7fa65fd6cd351fd5fd4cc8c9db5",
+    "liquidity-launcher=dependencies/liquidity-launcher-0.0.0",
+    "blocknumberish=dependencies/blocknumberish-0.0.0",
+    "continuous-clearing-auction=src/",
+    "test=test/",
+    "btt=test/btt/",
+    "@uniswap/v4-core=dependencies/uniswap-v4-core-4",
+    "forge-chronicles-0.0.0/=dependencies/forge-chronicles-0.0.0/",
+    "forge-gas-snapshot-0.0.4/=dependencies/forge-gas-snapshot-0.0.4/",
 ]
 
 additional_compiler_profiles = [{ name = "via_ir", optimizer_runs = 11111, via_ir = true }]
@@ -58,3 +60,18 @@ number_underscore = "thousands"
 
 [lint]
 exclude_lints = ["mixed-case-variable"]
+
+[soldeer]
+remappings_location = "config"
+
+[dependencies]
+"@openzeppelin-contracts" = "5.5.0"
+blocknumberish = { version = "0.0.0", git = "https://github.com/Uniswap/blocknumberish", rev = "b911c96b35aaaa45e79715e160b295d2efd56285" }
+forge-chronicles = { version = "0.0.0", git = "https://github.com/0xPolygon/forge-chronicles", rev = "c2be7a462d87b8e3a72f7e2b739cdf12807a71e4" }
+forge-gas-snapshot = "0.0.4"
+forge-std = "1.16.1"
+liquidity-launcher = { version = "0.0.0", git = "https://github.com/Uniswap/liquidity-launcher", rev = "3a3103543f50a13a0ae52a253bb98a925d72146f" }
+solady = "0.1.26"
+uniswap-permit2 = "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+uniswap-v4-core = "4"
+uniswap-v4-periphery = "60cd93803ac2b7fa65fd6cd351fd5fd4cc8c9db5"

@@ -9,7 +9,7 @@ import {Checkpoint} from 'continuous-clearing-auction/libraries/CheckpointLib.so
 import {ConstantsLib} from 'continuous-clearing-auction/libraries/ConstantsLib.sol';
 import {FixedPoint96} from 'continuous-clearing-auction/libraries/FixedPoint96.sol';
 import {MaxBidPriceLib} from 'continuous-clearing-auction/libraries/MaxBidPriceLib.sol';
-import {ERC20Mock} from 'openzeppelin-contracts/contracts/mocks/token/ERC20Mock.sol';
+import {ERC20Mock} from 'test/utils/ERC20Mock.sol';
 
 contract IsGraduatedTest is BttBase {
     function test_GivenRaisedIsLTRequired(

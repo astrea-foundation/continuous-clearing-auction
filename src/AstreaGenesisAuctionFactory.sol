@@ -10,6 +10,7 @@ import {
 import {AuctionParameters} from 'continuous-clearing-auction/interfaces/IContinuousClearingAuction.sol';
 import {ConstantsLib} from 'continuous-clearing-auction/libraries/ConstantsLib.sol';
 import {IDistributor} from 'liquidity-launcher/src/interfaces/IDistributor.sol';
+import {IDistributorFactory} from 'liquidity-launcher/src/interfaces/IDistributorFactory.sol';
 
 interface IERC20TotalSupply {
     function totalSupply() external view returns (uint256);
@@ -28,7 +29,7 @@ contract AstreaGenesisAuctionFactory is IAstreaGenesisAuctionFactory {
     uint24 public constant GENESIS_AUCTION_HIGH_MPS = 199;
     uint24 public constant GENESIS_AUCTION_LOW_MPS = 198;
 
-    /// @inheritdoc IAstreaGenesisAuctionFactory
+    /// @inheritdoc IDistributorFactory
     function create(address token, uint256 tokenAllocation, bytes calldata configData, bytes32 salt)
         external
         returns (IDistributor distributor)
@@ -58,7 +59,7 @@ contract AstreaGenesisAuctionFactory is IAstreaGenesisAuctionFactory {
         );
     }
 
-    /// @inheritdoc IAstreaGenesisAuctionFactory
+    /// @inheritdoc IDistributorFactory
     function getAddress(address token, uint256 tokenAllocation, bytes calldata configData, bytes32 salt, address sender)
         external
         view

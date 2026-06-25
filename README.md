@@ -24,7 +24,7 @@ The Genesis Participation NFT is intentionally deferred to a later dedicated imp
 ## Development
 
 ```bash
-forge install
+forge soldeer install
 forge build
 forge test
 ```
@@ -50,12 +50,6 @@ The generic [`ContinuousClearingAuctionFactory`](./src/ContinuousClearingAuction
 ## Audit Provenance
 
 The underlying CCA codebase has upstream audit reports from Spearbit, OpenZeppelin, and ABDK Consulting in [`docs/audits`](./docs/audits). These reports are provenance for the inherited Uniswap CCA code. Astrea-specific factory, deployment, and documentation changes need separate review before mainnet use.
-
-## Security
-
-Security contact: `security@astrea.xyz`
-
-Do not deploy the Genesis Auction to mainnet without an Astrea-specific review of the final branch, deployment parameters, token address, token allocation, recipients, validation hook configuration, and operational runbook.
 
 ## License
 

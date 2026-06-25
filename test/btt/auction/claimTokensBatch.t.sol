@@ -3,7 +3,6 @@ pragma solidity 0.8.26;
 
 import {AuctionFuzzConstructorParams, BttBase} from '../BttBase.sol';
 import {MockContinuousClearingAuction} from '../mocks/MockContinuousClearingAuction.sol';
-import {ERC20Mock} from 'openzeppelin-contracts/contracts/mocks/token/ERC20Mock.sol';
 import {FixedPointMathLib} from 'solady/utils/FixedPointMathLib.sol';
 import {Checkpoint} from 'src/CheckpointStorage.sol';
 import {IAuctionStorage} from 'src/interfaces/IAuctionStorage.sol';
@@ -12,6 +11,7 @@ import {IStepStorage} from 'src/interfaces/IStepStorage.sol';
 import {ConstantsLib} from 'src/libraries/ConstantsLib.sol';
 import {FixedPoint96} from 'src/libraries/FixedPoint96.sol';
 import {MaxBidPriceLib} from 'src/libraries/MaxBidPriceLib.sol';
+import {ERC20Mock} from 'test/utils/ERC20Mock.sol';
 
 contract ClaimTokensBatchTest is BttBase {
     function test_WhenBlockIsLTClaimBlock(AuctionFuzzConstructorParams memory _params, uint64 _blockNumber) public {

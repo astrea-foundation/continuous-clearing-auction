@@ -3,7 +3,6 @@ pragma solidity 0.8.26;
 
 import {AuctionFuzzConstructorParams, BttBase} from '../BttBase.sol';
 import {MockContinuousClearingAuction} from '../mocks/MockContinuousClearingAuction.sol';
-import {ERC20Mock} from 'openzeppelin-contracts/contracts/mocks/token/ERC20Mock.sol';
 import {FixedPointMathLib} from 'solady/utils/FixedPointMathLib.sol';
 import {ReentrancyGuardTransient} from 'solady/utils/ReentrancyGuardTransient.sol';
 import {Checkpoint} from 'src/CheckpointStorage.sol';
@@ -15,6 +14,7 @@ import {FixedPoint96} from 'src/libraries/FixedPoint96.sol';
 import {ValidationHookLib} from 'src/libraries/ValidationHookLib.sol';
 import {ValueX7} from 'src/libraries/ValueX7Lib.sol';
 import {AuctionStepsBuilder} from 'test/utils/AuctionStepsBuilder.sol';
+import {ERC20Mock} from 'test/utils/ERC20Mock.sol';
 import {MockCheckpointObservingValidationHook} from 'test/utils/MockCheckpointObservingValidationHook.sol';
 import {MockReenteringValidationHook} from 'test/utils/MockReenteringValidationHook.sol';
 

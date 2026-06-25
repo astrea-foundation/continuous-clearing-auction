@@ -1,6 +1,7 @@
 /target
 /out
 /cache
+/dependencies
 /coverage
 /report
 lcov.info

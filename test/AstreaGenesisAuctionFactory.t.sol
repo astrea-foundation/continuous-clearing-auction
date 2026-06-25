@@ -11,6 +11,7 @@ import {IContinuousClearingAuction} from 'continuous-clearing-auction/interfaces
 import {IValidationHook} from 'continuous-clearing-auction/interfaces/IValidationHook.sol';
 import {FixedPoint96} from 'continuous-clearing-auction/libraries/FixedPoint96.sol';
 import {StepLib} from 'continuous-clearing-auction/libraries/StepLib.sol';
+import {ValidationHookLib} from 'continuous-clearing-auction/libraries/ValidationHookLib.sol';
 import {Test} from 'forge-std/Test.sol';
 import {IDistributor} from 'liquidity-launcher/src/interfaces/IDistributor.sol';
 
@@ -184,7 +185,12 @@ contract AstreaGenesisAuctionFactoryTest is Test {
         vm.roll(auction.startBlock());
 
         vm.deal(alice, 1 ether);
-        vm.expectRevert(RevertingValidationHook.RevertingValidationHook__Rejected.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ValidationHookLib.ValidationHookCallFailed.selector,
+                abi.encodeWithSelector(RevertingValidationHook.RevertingValidationHook__Rejected.selector)
+            )
+        );
         vm.prank(alice);
         auction.submitBid{value: 1 ether}(FLOOR_PRICE + TICK_SPACING, 1 ether, alice, FLOOR_PRICE, bytes(''));
     }

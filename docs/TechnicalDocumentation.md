@@ -196,7 +196,7 @@ Fees are applied in two places:
 
 `currencyRaised()` and `currencyRaisedQ96X7()` always return the gross amount. Subtract the controller fee if you need the net amount offchain.
 
-If the auction was deployed with `_protocolFeeController == address(0)`, `ProtocolFeeLib.getProtocolFeeAmount` returns zero and no fee transfer is performed. See [`IProtocolFeeController`](../lib/liquidity-launcher/src/interfaces/IProtocolFeeController.sol) for the controller surface (global pips rate, optional per-currency progressive schedules, recipient management).
+If the auction was deployed with `_protocolFeeController == address(0)`, `ProtocolFeeLib.getProtocolFeeAmount` returns zero and no fee transfer is performed. See [`IProtocolFeeController`](../dependencies/liquidity-launcher-0.0.0/src/interfaces/IProtocolFeeController.sol) for the controller surface (global pips rate, optional per-currency progressive schedules, recipient management).
 
 ## Validation Hooks
 
