@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
+import {AuctionStepsBuilder} from '../../test/utils/AuctionStepsBuilder.sol';
+import {PlaygroundBidLens} from './PlaygroundBidLens.sol';
+import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import {ContinuousClearingAuctionFactory} from 'continuous-clearing-auction/ContinuousClearingAuctionFactory.sol';
 import {AuctionParameters} from 'continuous-clearing-auction/interfaces/IContinuousClearingAuction.sol';
 import {CCALens} from 'continuous-clearing-auction/lens/CCALens.sol';
-import {AuctionStepsBuilder} from '../../test/utils/AuctionStepsBuilder.sol';
-import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import {Script} from 'forge-std/Script.sol';
 import {console2} from 'forge-std/console2.sol';
 
@@ -33,7 +34,7 @@ contract DeployLocalCCAScript is Script {
     // --- Scaled-down token economics ---
     // 10,000 ASTREA total minted; 10% (1,000 ASTREA) allocated to the auction, matching the genesis 10% narrative.
     uint256 internal constant TOTAL_MINT = 10_000 ether;
-    uint128 internal constant AUCTION_ALLOCATION = 1_000 ether;
+    uint128 internal constant AUCTION_ALLOCATION = 1000 ether;
 
     // --- Scaled-down schedule: front-loaded two steps, 300 blocks total, sum(mps*blocks) == 1e7 ---
     uint24 internal constant STEP1_MPS = 50_000; // fast release
@@ -54,6 +55,7 @@ contract DeployLocalCCAScript is Script {
 
         uint64 startBlock = uint64(block.number) + startDelay;
         uint64 endBlock = startBlock + uint64(STEP1_BLOCKS) + uint64(STEP2_BLOCKS);
+        uint64 claimBlock = endBlock;
 
         bytes memory stepsData =
             AuctionStepsBuilder.init().addStep(STEP1_MPS, STEP1_BLOCKS).addStep(STEP2_MPS, STEP2_BLOCKS);
@@ -64,7 +66,7 @@ contract DeployLocalCCAScript is Script {
             fundsRecipient: fundsRecipient,
             startBlock: startBlock,
             endBlock: endBlock,
-            claimBlock: endBlock,
+            claimBlock: claimBlock,
             tickSpacing: TICK_SPACING_Q96,
             validationHook: address(0),
             floorPrice: FLOOR_PRICE_Q96,
@@ -91,9 +93,12 @@ contract DeployLocalCCAScript is Script {
         // 5. Deploy the read-only lens (batched state reads for offchain consumers).
         lens = new CCALens();
 
+        // 6. Deploy the dev-only bid-outcome lens used by the cca-playground UI.
+        PlaygroundBidLens bidLens = new PlaygroundBidLens();
+
         vm.stopBroadcast();
 
-        _logAndWrite(token, factory, auction, lens, startBlock, endBlock);
+        _logAndWrite(token, factory, auction, lens, address(bidLens), startBlock, endBlock, claimBlock);
     }
 
     function _logAndWrite(
@@ -101,18 +106,23 @@ contract DeployLocalCCAScript is Script {
         ContinuousClearingAuctionFactory factory,
         address auction,
         CCALens lens,
+        address bidLens,
         uint64 startBlock,
-        uint64 endBlock
+        uint64 endBlock,
+        uint64 claimBlock
     ) internal {
         console2.log('ASTREA token:      ', address(token));
         console2.log('Auction factory:   ', address(factory));
         console2.log('CCA auction:       ', auction);
         console2.log('CCA lens:          ', address(lens));
+        console2.log('Bid lens (dev):    ', bidLens);
         console2.log('Start block:       ', startBlock);
         console2.log('End block:         ', endBlock);
+        console2.log('Claim block:       ', claimBlock);
 
         // Write a deployment manifest for offchain consumers (e.g. the cca-playground console).
-        string memory json = string.concat(
+        // Built in two concats to stay within stack limits.
+        string memory addresses = string.concat(
             '{\n',
             '  "chainId": ',
             vm.toString(block.chainid),
@@ -130,6 +140,11 @@ contract DeployLocalCCAScript is Script {
             '  "lens": "',
             vm.toString(address(lens)),
             '",\n',
+            '  "bidLens": "',
+            vm.toString(bidLens),
+            '",\n'
+        );
+        string memory blocks = string.concat(
             '  "startBlock": ',
             vm.toString(startBlock),
             ',\n',
@@ -137,10 +152,10 @@ contract DeployLocalCCAScript is Script {
             vm.toString(endBlock),
             ',\n',
             '  "claimBlock": ',
-            vm.toString(endBlock),
+            vm.toString(claimBlock),
             '\n}\n'
         );
-        vm.writeFile('./deployments/local.json', json);
+        vm.writeFile('./deployments/local.json', string.concat(addresses, blocks));
         console2.log('Wrote deployments/local.json');
     }
 }
