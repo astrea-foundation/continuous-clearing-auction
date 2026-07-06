@@ -41,10 +41,24 @@ Use the Astrea factory deployment path for production Genesis Auction deployment
 
 The generic [`ContinuousClearingAuctionFactory`](./src/ContinuousClearingAuctionFactory.sol) remains in the repository for upstream compatibility and tests, but it is not the Astrea Genesis Auction production path.
 
+## Local dev / test environment
+
+To run the auction end to end on a local Anvil chain, see the
+[Local Dev Environment guide](./docs/LocalDevEnvironment.md):
+
+```bash
+./dev/dev-up.sh   # start Anvil, deploy the CCA stack, write deployments/local.json
+```
+
+A companion web console (live state, tick ladder, simulated ETH bids) lives in the
+separate [cca-playground](https://github.com/astrea-foundation/cca-playground) repository,
+which consumes this repo's deployment manifest and ABIs.
+
 ## Documentation
 
 - [Technical documentation](./docs/TechnicalDocumentation.md)
 - [Deployment guide](./docs/DeploymentGuide.md)
+- [Local dev / test environment](./docs/LocalDevEnvironment.md)
 - [Changelog](./CHANGELOG.md)
 
 ## Audit Provenance
