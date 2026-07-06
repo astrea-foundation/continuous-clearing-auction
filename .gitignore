@@ -15,3 +15,8 @@ deployments/**/31337.*
 visualizations/auction_simple.py
 
 broadcast/
+
+# local dev environment
+anvil.log
+.anvil.pid
+deployments/local.json
