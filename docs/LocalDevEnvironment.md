@@ -34,6 +34,27 @@ repository — see its README for the visual walkthrough.
 (id `31337`) on `:8545`, redeploys, and rewrites `deployments/local.json`. Re-run
 it any time to reset to a clean auction.
 
+Anvil is started with `--prune-history 200000`, which keeps per-block state
+snapshots in memory for the whole auction timeline. This makes `anvil_rollback`
+(the playground's "travel to the past") reliable at any depth — with the default
+retention, rolling back past the retention window silently restores an empty
+state (deployed contracts disappear).
+
+### Phase windows
+
+Two env knobs shape the lifecycle so all four phases (pre-genesis → live →
+settlement → claim) exist as distinct block windows locally:
+
+```bash
+START_DELAY=30 CLAIM_DELAY=50 ./dev/dev-up.sh   # the defaults
+```
+
+- `START_DELAY` — blocks between deployment and `startBlock` (the pre-genesis window)
+- `CLAIM_DELAY` — blocks between `endBlock` and `claimBlock` (the settlement window)
+
+With the defaults the timeline is roughly: deploy ≈ block 2, start 30, end 330,
+claims 380.
+
 ## What gets deployed
 
 `script/deploy/DeployLocalCCA.s.sol` deploys, from Anvil account 0:
@@ -44,6 +65,7 @@ it any time to reset to a clean auction.
 | `ContinuousClearingAuctionFactory` | Generic CCA factory, no protocol fee controller. |
 | `ContinuousClearingAuction` | The auction, created via the factory, funded and `onTokensReceived()`-notified. |
 | `CCALens` | Read-only lens for batched state + tick reads (used by the playground console). |
+| `PlaygroundBidLens` | **Dev-only** lens: previews a bid's exact exit/claim outcome (tokens, refund, `exitPartiallyFilledBid` hints) by simulating the calls in an `eth_call` and reverting with the result. Never deploy to a real network. |
 
 ### Auction parameters (genesis-shaped, scaled for local use)
 
@@ -69,10 +91,15 @@ an offchain consumer needs to connect:
 {
   "chainId": 31337,
   "rpcUrl": "http://127.0.0.1:8545",
-  "token": "0x…", "factory": "0x…", "auction": "0x…", "lens": "0x…",
-  "startBlock": 2, "endBlock": 302, "claimBlock": 302
+  "token": "0x…", "factory": "0x…", "auction": "0x…", "lens": "0x…", "bidLens": "0x…",
+  "startBlock": 30, "endBlock": 330, "claimBlock": 380,
+  "deployBlock": 2
 }
 ```
+
+`deployBlock` (added by `dev-up.sh` after the deployment) is the chain head right
+after deploy — the earliest block a consumer may roll the chain back to without
+un-deploying the contracts.
 
 The [cca-playground](https://github.com/astrea-foundation/cca-playground) repo's
 `scripts/sync-artifacts.sh` copies this manifest plus the relevant ABIs from `out/`
@@ -95,6 +122,7 @@ cast balance $A                          --rpc-url http://127.0.0.1:8545   # esc
 ```
 dev/dev-up.sh / dev-down.sh              # start / stop the local environment
 script/deploy/DeployLocalCCA.s.sol       # Foundry deploy (+ AstreaLocalToken mock)
+script/deploy/PlaygroundBidLens.sol      # dev-only bid-outcome lens for the playground UI
 deployments/local.json                   # generated: addresses + rpc (gitignored)
 ```
 
