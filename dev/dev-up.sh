@@ -20,6 +20,11 @@ PORT="${PORT:-8545}"
 CHAIN_ID="${CHAIN_ID:-31337}"
 # Default Anvil account 0 (public, well-known test key — local chain only).
 DEPLOYER_PK="${DEPLOYER_PK:-0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80}"
+# Phase windows (blocks): a pre-genesis window before the auction opens and a
+# settlement window between the end block and claims opening, so all four
+# lifecycle phases exist on the local chain (consumed by DeployLocalCCA.s.sol).
+export START_DELAY="${START_DELAY:-30}"
+export CLAIM_DELAY="${CLAIM_DELAY:-50}"
 
 echo "▸ Ensuring port :$PORT is free"
 # Only target the process LISTENING on the port (an old Anvil), not client
@@ -59,6 +64,12 @@ mkdir -p deployments
 forge script script/deploy/DeployLocalCCA.s.sol:DeployLocalCCAScript \
   --rpc-url "$RPC" --private-key "$DEPLOYER_PK" --broadcast \
   2>&1 | sed -n '/== Logs ==/,/ONCHAIN EXECUTION COMPLETE/p'
+
+# Record the chain head right after deployment: the earliest block the playground's
+# time machine may roll back to without un-deploying the contracts.
+DEPLOY_BLOCK="$(cast block-number --rpc-url "$RPC")"
+jq --argjson b "$DEPLOY_BLOCK" '. + {deployBlock: $b}' deployments/local.json > deployments/local.json.tmp \
+  && mv deployments/local.json.tmp deployments/local.json
 
 echo ""
 echo "✓ Local CCA environment is up."

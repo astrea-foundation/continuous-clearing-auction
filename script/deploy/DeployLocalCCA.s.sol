@@ -52,10 +52,13 @@ contract DeployLocalCCAScript is Script {
         address fundsRecipient = vm.envOr('FUNDS_RECIPIENT', deployer);
         // Number of blocks after the current block at which the auction opens.
         uint64 startDelay = uint64(vm.envOr('START_DELAY', uint256(1)));
+        // Number of blocks after the end block before claims open, so the settlement
+        // window (ended, claims not yet open) exists as a distinct phase locally.
+        uint64 claimDelay = uint64(vm.envOr('CLAIM_DELAY', uint256(50)));
 
         uint64 startBlock = uint64(block.number) + startDelay;
         uint64 endBlock = startBlock + uint64(STEP1_BLOCKS) + uint64(STEP2_BLOCKS);
-        uint64 claimBlock = endBlock;
+        uint64 claimBlock = endBlock + claimDelay;
 
         bytes memory stepsData =
             AuctionStepsBuilder.init().addStep(STEP1_MPS, STEP1_BLOCKS).addStep(STEP2_MPS, STEP2_BLOCKS);
