@@ -46,7 +46,13 @@ if [ -n "$PIDS" ]; then
 fi
 
 echo "▸ Starting Anvil (chain $CHAIN_ID) on :$PORT"
-nohup anvil --host 127.0.0.1 --port "$PORT" --chain-id "$CHAIN_ID" > "$ROOT/anvil.log" 2>&1 &
+# --prune-history <N> raises anvil's in-memory per-block state retention to N states
+# (default ~256, with unreliable disk paging beyond that). The playground time machine
+# uses anvil_rollback for "past travel", which silently restores an EMPTY state if the
+# target block's state was evicted — a large in-memory limit keeps every block of the
+# auction timeline rollback-able, including across repeated travel cycles.
+nohup anvil --host 127.0.0.1 --port "$PORT" --chain-id "$CHAIN_ID" \
+  --prune-history 200000 > "$ROOT/anvil.log" 2>&1 &
 echo $! > "$ROOT/.anvil.pid"
 
 echo "▸ Waiting for Anvil…"
