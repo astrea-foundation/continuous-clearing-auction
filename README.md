@@ -56,6 +56,7 @@ which consumes this repo's deployment manifest and ABIs.
 
 ## Documentation
 
+- [Repo onboarding playbook](./docs/OnboardingPlaybook.md)
 - [Technical documentation](./docs/TechnicalDocumentation.md)
 - [Deployment guide](./docs/DeploymentGuide.md)
 - [Local dev / test environment](./docs/LocalDevEnvironment.md)
